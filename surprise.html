@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <title>love love</title>
+    <style>
+      body {
+        margin: 0;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: linear-gradient(to bottom right, #f8d9e0, #d6eaff);
+        font-family: "Microsoft Yahei", sans-serif;
+        overflow: hidden;
+      }
+      h1 {
+        font-size: 1.8em;
+        color: #444;
+        margin-bottom: 20px;
+        z-index: 2;
+      }
+      .suitcase {
+        width: 120px;
+        height: 100px;
+        background: orange;
+        border-radius: 15px;
+        position: relative;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        z-index: 2;
+        cursor: pointer;
+      }
+      .handle {
+        width: 60px;
+        height: 15px;
+        background: #444;
+        border-radius: 5px;
+        position: absolute;
+        top: -20px;
+        left: 30px;
+      }
+      .message {
+        display: none;
+        text-align: center;
+        margin-top: 30px;
+        font-size: 1.4em;
+        color: #333;
+        line-height: 1.6;
+        animation: fadeIn 1.5s ease forwards;
+        z-index: 2;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .heart {
+        position: absolute;
+        font-size: 20px;
+        animation: floatUp 4s linear forwards, rainbowMove 3s linear infinite;
+        pointer-events: none;
+        background: linear-gradient(
+          90deg,
+          #ff4d4f,
+          #ff7a45,
+          #ffc53d,
+          #73d13d,
+          #40a9ff,
+          #9254de,
+          #ff4d4f
+        );
+        background-size: 400% 400%;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+      }
+      @keyframes rainbowMove {
+        0% {
+          background-position: 0% 50%;
+        }
+        100% {
+          background-position: 100% 50%;
+        }
+      }
+      @keyframes floatUp {
+        from {
+          transform: translateY(0) scale(1);
+          opacity: 1;
+        }
+        to {
+          transform: translateY(-120vh) scale(1.5);
+          opacity: 0;
+        }
+      }
+      .fox {
+        position: absolute;
+        bottom: 50px;
+        left: -200px;
+        width: 150px;
+        transition: left 3s linear;
+        z-index: 2;
+      }
+      .suitcase.open {
+        animation: shake 0.5s ease;
+        background: #ffaeb5;
+      }
+      @keyframes shake {
+        0% {
+          transform: rotate(0);
+        }
+        25% {
+          transform: rotate(-5deg);
+        }
+        50% {
+          transform: rotate(5deg);
+        }
+        75% {
+          transform: rotate(-5deg);
+        }
+        100% {
+          transform: rotate(0);
+        }
+      }
+
+      /* 背景图片环 */
+      .bg-ring {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 1;
+      }
+      .bg-item {
+        position: absolute;
+        width: 120px;
+        height: 120px;
+        object-fit: contain;
+        opacity: 0;
+        transform: scale(1);
+        transition: opacity 0.4s ease, transform 0.4s ease;
+        filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.2));
+      }
+      .bg-item.active {
+        opacity: 0.75;
+        transform: scale(1.05);
+      }
+    </style>
+  </head>
+  <body>
+    <h1>open open</h1>
+
+    <div class="suitcase" id="suitcase" onclick="summonFox()">
+      <div class="handle"></div>
+    </div>
+
+    <div class="message" id="message">
+      🎉 欢迎来到新旅程！<br />cc放心飞，llh永相随 💕
+    </div>
+
+    <!-- 小狐狸 GIF：将 src 替换为实际 URL -->
+    <img src="fox.gif" alt="走路的小狐狸" class="fox" id="fox" />
+
+    <audio id="bgm" loop>
+      <source
+        src="https://www.bensound.com/bensound-music/bensound-sunny.mp3"
+        type="audio/mpeg"
+      />
+    </audio>
+
+    <script>
+      function createHeart() {
+        let heart = document.createElement("div");
+        heart.className = "heart";
+        heart.innerHTML = "❤";
+        heart.style.left = Math.random() * window.innerWidth + "px";
+        heart.style.top = window.innerHeight + "px";
+        heart.style.fontSize = 20 + Math.random() * 40 + "px";
+        document.body.appendChild(heart);
+        setTimeout(() => heart.remove(), 4000);
+      }
+
+      function summonFox() {
+        let fox = document.getElementById("fox");
+        let suitcase = document.getElementById("suitcase");
+        fox.style.left = "calc(50% - 75px)";
+        setTimeout(() => {
+          suitcase.classList.add("open");
+          document.getElementById("message").style.display = "block";
+          document.getElementById("bgm").play();
+          setInterval(createHeart, 150);
+          initBackgroundRing();
+          startBgSequence();
+        }, 3000);
+      }
+
+      // 背景图片环：按 1-9 图片顺序依次在圆环位置出现
+      let bgRing;
+      let bgImgs = [];
+      let bgTimer;
+      const bgExtCandidates = ["png", "jpg", "jpeg", "webp", "gif"];
+
+      function initBackgroundRing() {
+        if (bgRing) return;
+        bgRing = document.createElement("div");
+        bgRing.className = "bg-ring";
+        document.body.appendChild(bgRing);
+
+        for (let i = 1; i <= 9; i++) {
+          const img = document.createElement("img");
+          img.className = "bg-item";
+          img.alt = `${i}`;
+          resolveImgSource(img, i);
+          bgRing.appendChild(img);
+          bgImgs.push(img);
+        }
+
+        positionBgItems();
+        window.addEventListener("resize", positionBgItems);
+      }
+
+      function positionBgItems() {
+        if (!bgImgs.length) return;
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        const cx = w / 2;
+        const cy = h / 2;
+        const radius = Math.min(w, h) * 0.38;
+        const itemSize = Math.min(w, h) * 0.2;
+
+        bgImgs.forEach((img, i) => {
+          const angle = (i / bgImgs.length) * Math.PI * 2 - Math.PI / 2;
+          const x = cx + radius * Math.cos(angle) - itemSize / 2;
+          const y = cy + radius * Math.sin(angle) - itemSize / 2;
+          img.style.left = x + "px";
+          img.style.top = y + "px";
+          img.style.width = itemSize + "px";
+          img.style.height = itemSize + "px";
+        });
+      }
+
+      function resolveImgSource(img, index) {
+        let attemptIndex = 0;
+        const tryNext = () => {
+          if (attemptIndex >= bgExtCandidates.length) {
+            img.style.display = "none";
+            return;
+          }
+          const src = `${index}.${bgExtCandidates[attemptIndex++]}`;
+          img.onerror = tryNext;
+          img.onload = () => {
+            img.onerror = null;
+          };
+          img.src = src;
+        };
+        tryNext();
+      }
+
+      function startBgSequence() {
+        if (bgTimer || !bgImgs.length) return;
+        let idx = 0;
+        let roundCount = 0;
+        const totalRounds = 2;
+        const step = () => {
+          bgImgs.forEach((img) => img.classList.remove("active"));
+          bgImgs[idx].classList.add("active");
+          idx = (idx + 1) % bgImgs.length;
+          if (idx === 0) {
+            roundCount++;
+            if (roundCount >= totalRounds) {
+              clearInterval(bgTimer);
+              bgTimer = null;
+              // 所有图片同时显示
+              bgImgs.forEach((img) => img.classList.add("active"));
+            }
+          }
+        };
+        step();
+        bgTimer = setInterval(step, 1000);
+      }
+    </script>
+  </body>
+</html>
